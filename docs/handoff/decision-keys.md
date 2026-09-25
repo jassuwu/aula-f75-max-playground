@@ -31,7 +31,21 @@ verified on jass's m4 (32 gb, macos 27, python 3.14, uv):
 | tanglish sentence → language | "english" at 0.05 confidence — useless; english checkpoint only |
 | `hidapi` installed in the venv | yes |
 
-blocked: the f75 max was not connected to this mac (no `0c45:800a` on usb, no `05ac:024f` dongle). nobody has ever sent the `04 20` per-key stream to an f75 max. that is the project's one real unknown and it needs the board plugged in over usb-c.
+## session 2026-09-26
+
+- repo initialised (`git init`, five segmented commits, `commit.gpgsign=false` local because the global key needs a touch). rules in `AGENTS.md`.
+- board enumerates over usb-c on this mac: interface 3 is usage page `0xff13`, interface 2 is `0xff68`, matching the research.
+- **`04 20` is accepted.** `scripts/f75_probe.py stream` sends the start, five data packets, the zero packet and `04 02`, all as 65-byte feature reports through `hidapi` (leading `0x00` report id). every command gets a sane echo back. acks seen:
+  - first run, no unlock: start `04 20 00 01 … 08`, apply `04 02 00 ff`
+  - with punkster81's handshake: all four handshake acks `00 01`, start `00 01`, apply `00 00`
+  - no unlock again after that: start `00 00`, apply `00 01`
+  byte 3 of the ack is stateful, not a success flag. do not gate on it.
+- frame cost with conservative pacing (5 ms between data packets): ~58 ms. the transfers alone are ~23 ms, so 30 fps is reachable once the sleeps go.
+- **visual confirmation pending.** jass has to look at the board while `stream --pattern rows` runs: row 0 red, row 1 orange, row 2 yellow, row 3 green, row 4 blue, row 5 purple, esc and space white. clean rows confirm the map in `docs/handoff/f75max-led-map.json`.
+- whole-board colour (`04 13`) was skipped on purpose: it ends with `04 f0`, which punkster81 documents as a flash write. the stream is ram-only and its acks prove the transport.
+- keepalive timeout (step 5) still unmeasured; needs eyes.
+
+blocked on 2026-09-22: the f75 max was not connected to this mac (no `0c45:800a` on usb, no `05ac:024f` dongle). nobody has ever sent the `04 20` per-key stream to an f75 max. that is the project's one real unknown and it needs the board plugged in over usb-c.
 
 staged (in `/tmp`, will not survive a reboot — recreate with the commands below):
 - `/tmp/laya-bench/.venv` with `laya-mlx` and `hidapi`
