@@ -1,4 +1,4 @@
-# keyboard-video
+# aula-f75-max-playground
 
 the AULA F75 Max (usb `0c45:800a`) as an 80-key colour display driven from a mac. the board is both the screen and the controller: every source is a function from time and key events to 80 colours.
 
@@ -10,7 +10,7 @@ read `docs/handoff/decision-keys.md` first, then `docs/research/aula-f75-max-rgb
 - **never flash firmware.** no isp tools, no bootloader, no dumps. this is the only way to brick the board and it is not in scope.
 - **nothing typed leaves the machine.** the key tap is a keylogger in mechanism. no network at runtime, no keystrokes written to disk. a source keeps in memory only what it needs for the current frame.
 - **one process owns the board.** the command interface opens exclusively; a second program gets `open failed` until the first exits.
-- **f3 and right alt misbehave in the stream (2026-09-26).** f3 is overridden red by the firmware whatever we send. right alt ignores its documented index 95; `scripts/find_led.py` sweeps for the real one.
+- **f3 and right alt misbehave in the stream (2026-09-26).** f3 is a firmware indicator: it blinks red whatever we send, so a source must never rely on it. right alt ignores its documented index 0x5f but lit green during a `scripts/find_led.py` sweep of the unused indices, so some other index drives it. which one is not pinned down; the sweep was stopped early.
 - **the board sleeps five minutes after the last physical key press**, even wired and mid-stream; our frames don't count as activity. it drops off usb until a key is pressed. the loop waits and resumes. its sleep setting (no sleep, 1, 5 or 30 min) is a board setting write; only change it with jass's go-ahead.
 - **wired only.** the 2.4g dongle carries whole-board colour, not per-key.
 - **cap at 30 fps.** faster has dropped keystrokes on other boards (openrgb #2513).
