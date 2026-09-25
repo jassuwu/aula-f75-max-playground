@@ -17,6 +17,7 @@ import hid
 VID, PID = 0x0C45, 0x800A
 CMD_USAGE_PAGE = 0xFF13
 GAP = 0.040  # vendor cmd_delaytime is 35 ms
+PACKET_GAP = 0.005  # between data packets inside a frame; --packet-gap overrides
 
 # f75 max, 80 keys, led index per key. derived from punkster81's f108 pro map,
 # which matches the f75 max rgb-keyboard.xml light_index values on every
@@ -106,18 +107,18 @@ class Board:
     def frame(self, colors: dict[int, tuple[int, int, int]], verbose: bool = False) -> None:
         """one frame: start, 5 data packets of 16 [idx r g b], zero packet, apply."""
         self.set(pkt(0x04, 0x20, 0x08))
-        time.sleep(GAP if verbose else 0.005)
+        time.sleep(GAP if verbose else PACKET_GAP)
         a1 = self.get()
         entries = [(idx, *colors.get(idx, (0, 0, 0))) for idx in KEYS.values()]
         for i in range(0, len(entries), 16):
             chunk = entries[i:i + 16]
             data = bytes(b for e in chunk for b in e)
             self.set(data + bytes(64 - len(data)))
-            time.sleep(0.005)
+            time.sleep(PACKET_GAP)
         self.set(bytes(64))
-        time.sleep(0.005)
+        time.sleep(PACKET_GAP)
         self.set(pkt(0x04, 0x02))
-        time.sleep(GAP if verbose else 0.005)
+        time.sleep(GAP if verbose else PACKET_GAP)
         a2 = self.get()
         if verbose:
             print(f"  04 20 start -> {a1[:12].hex(' ') if a1 else 'no reply'}")
@@ -149,6 +150,7 @@ def main() -> None:
     s.add_argument("--seconds", type=float, default=5.0)
     s.add_argument("--pattern", default="esc")
     s.add_argument("--fps", type=float, default=20.0)
+    s.add_argument("--packet-gap", type=float, default=5.0, help="ms between packets inside a frame")
     args = ap.parse_args()
 
     if args.cmd == "enumerate":
@@ -156,6 +158,8 @@ def main() -> None:
             print(d["interface_number"], hex(d["usage_page"]), hex(d["usage"]), d["path"])
         return
 
+    global PACKET_GAP
+    PACKET_GAP = args.packet_gap / 1000.0
     b = Board()
     try:
         if args.unlock:
