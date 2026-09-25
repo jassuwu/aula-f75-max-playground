@@ -7,6 +7,7 @@ a source is anything with these four methods and one attribute:
     on_key(key, down) -> None
     tick(t, dt) -> dict[str, rgb] | None    None means "no change"
     stop() -> None
+    done: bool            optional; set it to end the run (a video that finished)
 
 holding esc for a second always stops the source and hands the keys back,
 before the source sees the event. when frames stop the firmware fades the last
@@ -66,6 +67,8 @@ def run(source: Source, fps: int = FPS, board: Board | None = None, seconds: flo
             if esc_since is not None and now - esc_since >= ESC_HOLD:
                 break
             if seconds is not None and now - t0 >= seconds:
+                break
+            if getattr(source, "done", False):
                 break
             frame = source.tick(now - t0, now - prev)
             prev = now
