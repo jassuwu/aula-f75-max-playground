@@ -1,12 +1,17 @@
 [project]
 name = "keys"
 version = "0.1.0"
-description = "the aula f75 max as an 80-key colour display, driven from a mac"
+description = "the aula f75 max as an 80-pixel screen. snake on it, bad apple on it"
+readme = "README.md"
+license = "MIT"
 requires-python = ">=3.13"
 dependencies = [
   "hidapi>=0.14",
   "pyobjc-framework-Quartz>=11",
 ]
+
+[project.urls]
+Repository = "https://github.com/jassuwu/aula-f75-max-playground"
 
 [project.scripts]
 keys = "keys.cli:main"
