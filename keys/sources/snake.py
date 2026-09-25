@@ -35,11 +35,17 @@ def _scale(c: RGB, k: float) -> RGB:
     return tuple(int(v * k) for v in c)
 
 
+class _Mute:
+    def play(self, name: str, n: int = 0) -> None:
+        pass
+
+
 class Snake:
     keys = "capture"
 
-    def __init__(self, rng: random.Random | None = None) -> None:
+    def __init__(self, rng: random.Random | None = None, sound=None) -> None:
         self.rng = rng or random.Random()
+        self.sound = sound or _Mute()
 
     # ── lifecycle ────────────────────────────────────────────────────────────
     def start(self, layout) -> None:
@@ -73,6 +79,7 @@ class Snake:
         if self.state in ("dead", "won"):
             if key.name == "enter":
                 self.reset()
+                self.sound.play("start")
             return
         if key.name in ARROWS:
             self.flash_key, self.flash_key_frames = key, 2
@@ -84,6 +91,7 @@ class Snake:
             if self.state == "waiting":
                 self.state = "running"
                 self.step_at = self.t + 1.0 / self.speed
+                self.sound.play("start")
 
     # ── rules ────────────────────────────────────────────────────────────────
     @property
@@ -114,6 +122,7 @@ class Snake:
         if nxt in body:
             self.state = "dying"
             self.dying_t = self.t
+            self.sound.play("die")
             return
         self.body.append(nxt)
         if eating:
@@ -123,6 +132,9 @@ class Snake:
             self.apple_at = self.t + 0.25
             if self.length == len(self.layout.KEYS):
                 self.state = "won"
+                self.sound.play("win")
+            else:
+                self.sound.play("eat", self.apples - 1)
         else:
             self.body.popleft()
 

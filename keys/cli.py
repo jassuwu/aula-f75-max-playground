@@ -10,6 +10,7 @@ from .tap import TapUnavailable
 
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(prog="keys", description="the f75 max as an 80-key display")
+    ap.add_argument("--quiet", action="store_true", help="no sound")
     ap.add_argument("--seconds", type=float, default=None, help="stop after this long (default: run until esc is held)")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("snake", help="snake on the whole board. arrows steer, hold esc to quit")
@@ -31,7 +32,12 @@ def main(argv: list[str] | None = None) -> None:
             from .sources.pattern import Rows
             run(Rows(), seconds=args.seconds)
         elif args.cmd == "snake":
+            from .sound import Sound
             from .sources.snake import Snake
-            run(Snake(), seconds=args.seconds)
+            sound = Sound(enabled=not args.quiet)
+            try:
+                run(Snake(sound=sound), seconds=args.seconds)
+            finally:
+                sound.close()
     except (BoardNotFound, TapUnavailable) as e:
         sys.exit(f"keys: {e}")

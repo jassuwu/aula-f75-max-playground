@@ -87,3 +87,32 @@ def test_moving_into_own_tail_is_allowed():
     s.apple = None
     s.step()
     assert s.state == "running" or s.head.name == "d"
+
+
+class Recorder:
+    def __init__(self):
+        self.played = []
+
+    def play(self, name, n=0):
+        self.played.append((name, n))
+
+
+def test_sounds_fire_on_start_eat_die_and_restart():
+    rec = Recorder()
+    s = Snake(rng=random.Random(1), sound=rec)
+    s.start(layout)
+    s.on_key(key("up"), True)
+    assert rec.played == [("start", 0)]
+    s.direction = "right"
+    s.queued.clear()
+    s.apple = layout.neighbor(s.head, "right")
+    s.step()
+    assert rec.played[-1] == ("eat", 0)
+    s.body.clear()
+    s.body.extend([key("g"), key("f"), key("r"), key("e"), key("d")])
+    s.direction = "right"
+    s.step()
+    assert rec.played[-1] == ("die", 0)
+    s.state = "dead"
+    s.on_key(key("enter"), True)
+    assert rec.played[-1] == ("start", 0)
