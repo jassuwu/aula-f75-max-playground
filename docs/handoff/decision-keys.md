@@ -41,7 +41,8 @@ verified on jass's m4 (32 gb, macos 27, python 3.14, uv):
   - no unlock again after that: start `00 00`, apply `00 01`
   byte 3 of the ack is stateful, not a success flag. do not gate on it.
 - frame cost with conservative pacing (5 ms between data packets): ~58 ms. the transfers alone are ~23 ms, so 30 fps is reachable once the sleeps go.
-- **visual confirmation pending.** jass has to look at the board while `stream --pattern rows` runs: row 0 red, row 1 orange, row 2 yellow, row 3 green, row 4 blue, row 5 purple, esc and space white. clean rows confirm the map in `docs/handoff/f75max-led-map.json`.
+- **confirmed on the board.** jass filmed `stream --pattern rows` (IMG_5889): row 0 red, row 1 orange, row 2 yellow, row 3 green, row 4 blue, row 5 purple, esc and space white. every key in its expected row, including backspace, del, pgup, pgdn, end and the arrow cluster. the map in `docs/handoff/f75max-led-map.json` is confirmed. **the f75 max accepts the per-key stream from macos. the project's one unknown is closed.**
+- unlock: the confirmed run came after punkster81's handshake had been sent once earlier in the same usb session. whether the stream works on a fresh power cycle without it is untested; sending the handshake once at startup is harmless, so do that.
 - whole-board colour (`04 13`) was skipped on purpose: it ends with `04 f0`, which punkster81 documents as a flash write. the stream is ram-only and its acks prove the transport.
 - keepalive timeout (step 5) still unmeasured; needs eyes.
 

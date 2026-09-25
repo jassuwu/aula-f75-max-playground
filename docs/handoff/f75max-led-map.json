@@ -1,7 +1,7 @@
 {
  "board": "aula f75 max",
  "usb": "0c45:800a",
- "status": "derived from punkster81's f108 pro map; every spot-checked key matches the f75 max rgb-keyboard.xml light_index. row membership pending visual confirmation.",
+ "status": "confirmed on the board 2026-09-26: rows pattern streamed via 04 20, every key lit in its expected row, esc and space confirmed individually (video IMG_5889). derived from punkster81's f108 pro map.",
  "rows": [
   [
    {
