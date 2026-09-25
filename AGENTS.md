@@ -12,7 +12,7 @@ read `docs/handoff/decision-keys.md` first, then `docs/research/aula-f75-max-rgb
 - **wired only.** the 2.4g dongle carries whole-board colour, not per-key.
 - **cap at 30 fps.** faster has dropped keystrokes on other boards (openrgb #2513).
 - **an interrupted frame means resend the start packet**, never carry on mid-frame.
-- **restore the board on exit.** the firmware does not restore its own lighting when the stream stops; it stays dark. the player owns restore, and until a clean exit command is found the honest answer is a replug. never leave a source running with nothing streaming.
+- **restore on exit is free.** when frames stop, the firmware fades the last frame out and takes the board back within about a minute. a source that wants to hold a static image resends it at a low rate. a source that quits just stops sending. never fight the firmware for the board.
 - **never send punkster81's "unlock" packet.** it is a clock write (`00 01 5a YY MM DD …`), not an unlock. the stream needs no handshake. `scripts/f75_probe.py rtc` fixes the clock if something did.
 - copy lowercase, product-grade tone. one compact control for "which source", not a wall of toggles.
 
