@@ -1,0 +1,339 @@
+{
+ "board": "aula f75 max",
+ "usb": "0c45:800a",
+ "status": "derived from punkster81's f108 pro map; every spot-checked key matches the f75 max rgb-keyboard.xml light_index. row membership pending visual confirmation.",
+ "rows": [
+  [
+   {
+    "key": "esc",
+    "led": 1
+   },
+   {
+    "key": "f1",
+    "led": 2
+   },
+   {
+    "key": "f2",
+    "led": 3
+   },
+   {
+    "key": "f3",
+    "led": 4
+   },
+   {
+    "key": "f4",
+    "led": 5
+   },
+   {
+    "key": "f5",
+    "led": 6
+   },
+   {
+    "key": "f6",
+    "led": 7
+   },
+   {
+    "key": "f7",
+    "led": 8
+   },
+   {
+    "key": "f8",
+    "led": 9
+   },
+   {
+    "key": "f9",
+    "led": 10
+   },
+   {
+    "key": "f10",
+    "led": 11
+   },
+   {
+    "key": "f11",
+    "led": 12
+   },
+   {
+    "key": "f12",
+    "led": 13
+   }
+  ],
+  [
+   {
+    "key": "`",
+    "led": 19
+   },
+   {
+    "key": "1",
+    "led": 20
+   },
+   {
+    "key": "2",
+    "led": 21
+   },
+   {
+    "key": "3",
+    "led": 22
+   },
+   {
+    "key": "4",
+    "led": 23
+   },
+   {
+    "key": "5",
+    "led": 24
+   },
+   {
+    "key": "6",
+    "led": 25
+   },
+   {
+    "key": "7",
+    "led": 26
+   },
+   {
+    "key": "8",
+    "led": 27
+   },
+   {
+    "key": "9",
+    "led": 28
+   },
+   {
+    "key": "0",
+    "led": 29
+   },
+   {
+    "key": "-",
+    "led": 30
+   },
+   {
+    "key": "=",
+    "led": 31
+   },
+   {
+    "key": "backspace",
+    "led": 103
+   },
+   {
+    "key": "del",
+    "led": 119
+   }
+  ],
+  [
+   {
+    "key": "tab",
+    "led": 37
+   },
+   {
+    "key": "q",
+    "led": 38
+   },
+   {
+    "key": "w",
+    "led": 39
+   },
+   {
+    "key": "e",
+    "led": 40
+   },
+   {
+    "key": "r",
+    "led": 41
+   },
+   {
+    "key": "t",
+    "led": 42
+   },
+   {
+    "key": "y",
+    "led": 43
+   },
+   {
+    "key": "u",
+    "led": 44
+   },
+   {
+    "key": "i",
+    "led": 45
+   },
+   {
+    "key": "o",
+    "led": 46
+   },
+   {
+    "key": "p",
+    "led": 47
+   },
+   {
+    "key": "[",
+    "led": 48
+   },
+   {
+    "key": "]",
+    "led": 49
+   },
+   {
+    "key": "\\",
+    "led": 67
+   },
+   {
+    "key": "pgup",
+    "led": 118
+   }
+  ],
+  [
+   {
+    "key": "caps",
+    "led": 55
+   },
+   {
+    "key": "a",
+    "led": 56
+   },
+   {
+    "key": "s",
+    "led": 57
+   },
+   {
+    "key": "d",
+    "led": 58
+   },
+   {
+    "key": "f",
+    "led": 59
+   },
+   {
+    "key": "g",
+    "led": 60
+   },
+   {
+    "key": "h",
+    "led": 61
+   },
+   {
+    "key": "j",
+    "led": 62
+   },
+   {
+    "key": "k",
+    "led": 63
+   },
+   {
+    "key": "l",
+    "led": 64
+   },
+   {
+    "key": ";",
+    "led": 65
+   },
+   {
+    "key": "'",
+    "led": 66
+   },
+   {
+    "key": "enter",
+    "led": 85
+   },
+   {
+    "key": "pgdn",
+    "led": 121
+   }
+  ],
+  [
+   {
+    "key": "lshift",
+    "led": 73
+   },
+   {
+    "key": "z",
+    "led": 74
+   },
+   {
+    "key": "x",
+    "led": 75
+   },
+   {
+    "key": "c",
+    "led": 76
+   },
+   {
+    "key": "v",
+    "led": 77
+   },
+   {
+    "key": "b",
+    "led": 78
+   },
+   {
+    "key": "n",
+    "led": 79
+   },
+   {
+    "key": "m",
+    "led": 80
+   },
+   {
+    "key": ",",
+    "led": 81
+   },
+   {
+    "key": ".",
+    "led": 82
+   },
+   {
+    "key": "/",
+    "led": 83
+   },
+   {
+    "key": "rshift",
+    "led": 84
+   },
+   {
+    "key": "up",
+    "led": 101
+   },
+   {
+    "key": "end",
+    "led": 120
+   }
+  ],
+  [
+   {
+    "key": "lctrl",
+    "led": 91
+   },
+   {
+    "key": "win",
+    "led": 92
+   },
+   {
+    "key": "lalt",
+    "led": 93
+   },
+   {
+    "key": "space",
+    "led": 94
+   },
+   {
+    "key": "ralt",
+    "led": 95
+   },
+   {
+    "key": "fn",
+    "led": 96
+   },
+   {
+    "key": "left",
+    "led": 99
+   },
+   {
+    "key": "down",
+    "led": 100
+   },
+   {
+    "key": "right",
+    "led": 102
+   }
+  ]
+ ]
+}
