@@ -145,6 +145,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("enumerate")
+    sub.add_parser("rtc", help="set the board clock to local time")
     s = sub.add_parser("stream")
     s.add_argument("--unlock", action="store_true")
     s.add_argument("--seconds", type=float, default=5.0)
@@ -156,6 +157,14 @@ def main() -> None:
     if args.cmd == "enumerate":
         for d in hid.enumerate(VID, PID):
             print(d["interface_number"], hex(d["usage_page"]), hex(d["usage"]), d["path"])
+        return
+
+    if args.cmd == "rtc":
+        b = Board()
+        try:
+            rtc_sync(b)
+        finally:
+            b.close()
         return
 
     global PACKET_GAP
@@ -181,6 +190,28 @@ def main() -> None:
         print(f"streamed {n} frames in {dt:.1f}s ({n / dt:.1f} fps incl. sleep)")
     finally:
         b.close()
+
+
+
+
+def rtc_sync(b: "Board") -> None:
+    """set the board's clock to local time. ghost-cr's verified cable sequence:
+    04 18, 04 28 01, `00 01 5a YY MM DD HH mm SS 00 05 .. aa 55`, 04 02.
+    note: punkster81's 'unlock' packet is this same format with a fixed date,
+    which is why sending it set the clock to 2026-03-09 00:01:02."""
+    t = time.localtime()
+    payload = bytes([0x00, 0x01, 0x5A, t.tm_year - 2000, t.tm_mon, t.tm_mday,
+                     t.tm_hour, t.tm_min, t.tm_sec, 0x00, 0x05, 0x00, 0x00, 0x00, 0xAA, 0x55])
+    payload += bytes(64 - len(payload))
+    print(f"rtc sync -> {t.tm_year}-{t.tm_mon:02d}-{t.tm_mday:02d} {t.tm_hour:02d}:{t.tm_min:02d}:{t.tm_sec:02d}")
+    b.cmd(0x18)
+    b.cmd(0x28, 0x01)
+    b.set(payload)
+    time.sleep(GAP)
+    ack = b.get()
+    print(f"  rtc payload -> {ack[:12].hex(' ') if ack else 'no reply'}")
+    time.sleep(GAP)
+    b.cmd(0x02)
 
 
 if __name__ == "__main__":
