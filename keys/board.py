@@ -21,6 +21,11 @@ class BoardNotFound(RuntimeError):
     pass
 
 
+class BoardLost(RuntimeError):
+    """the board stopped answering: usually its battery-saving sleep, which starts
+    five minutes after the last physical key press even while wired and streaming."""
+
+
 def _pkt(c1: int, arg: int = 0) -> bytes:
     return bytes([0x04, c1, 0, 0, 0, 0, 0, 0, arg]) + bytes(55)
 
@@ -41,15 +46,31 @@ class Board:
     def close(self) -> None:
         self.dev.close()
 
+    @classmethod
+    def wait(cls, timeout: float | None = None, say=print) -> "Board":
+        """open the board, waiting for it to appear (for example, waking from sleep)."""
+        deadline = None if timeout is None else time.monotonic() + timeout
+        told = False
+        while True:
+            try:
+                return cls()
+            except (BoardNotFound, OSError):
+                if deadline is not None and time.monotonic() >= deadline:
+                    raise BoardNotFound("f75 max did not appear on usb. wire it and press any key on it to wake it.")
+                if not told:
+                    say("waiting for the board. if it is plugged in, press any key on it to wake it.")
+                    told = True
+                time.sleep(1.0)
+
     def _set(self, data: bytes) -> None:
         for attempt in range(3):
             try:
                 if self.dev.send_feature_report(b"\x00" + data) < 0:
                     raise OSError(self.dev.error())
                 return
-            except OSError:
+            except OSError as e:
                 if attempt == 2:
-                    raise
+                    raise BoardLost(str(e)) from e
                 time.sleep(0.02 * (attempt + 1))
 
     def _get(self) -> bytes | None:
