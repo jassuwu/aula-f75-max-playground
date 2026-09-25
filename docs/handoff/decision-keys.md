@@ -144,3 +144,13 @@ pick questions by testing, not by taste: run ~20 candidate questions over jass's
 - laya: https://huggingface.co/convaiinnovations/laya · https://github.com/NandhaKishorM/laya · mlx port https://github.com/mizorewww/laya-mlx (pypi `laya-mlx`, weights `aac6fef/laya-mlx`)
 - jev: https://typesafe.ai/blog/introducing-system-one-models-and-jev · limits and schemas https://dev.to/valyuai/how-to-use-jev-a-practical-guide-to-typesafes-system-one-model-g5e
 - prior art: https://github.com/Drix10/keystroke-llm · https://x.com/zahlekhan/status/2100681083176226921 · https://github.com/yibie/awesome-jev · https://huggingface.co/spaces/multimodalart/jev-reproductions-tracker
+
+## the screen, checked 2026-09-26
+
+jass asked whether snake can use the 128x128 screen while it runs. what the references say:
+
+- the screen is not a live display. the only known path uploads an image or gif into a numbered slot: `04 18`, `04 72 slot chunks`, 4096-byte chunks on interface 2 each waited for an ack, `04 02` (ghost-cr protocol reference, vitalyart `AulaDevice.swift uploadDisplayStream`).
+- one still picture is a 256-byte header plus 32 KB of rgb565, so 9 chunks. at the vendor's ~65 ms per chunk that is about 0.6 s per picture. up to 255 frames per upload, each frame another 8 chunks.
+- slots are stored on the board: vitalyart's factory reset starts by "clearing display memory". every upload is almost certainly a flash write. the per-key stream is ram-only; this is not.
+- sending `04 02` on an incomplete upload corrupts firmware state until replug, so an upload must never be cut off by esc or ctrl-c.
+- so: a live score or live game view on the screen is out. what fits is one upload at a moment that matters, such as a title card at launch or a score card at game over, and only if jass accepts the flash writes. not built; waiting on that decision.
