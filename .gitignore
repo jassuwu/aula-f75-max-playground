@@ -5,3 +5,4 @@ __pycache__/
 CONTEXT.md
 docs/adr/
 media/
+demos/
