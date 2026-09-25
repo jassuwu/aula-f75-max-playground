@@ -424,7 +424,12 @@ def prepare(args) -> tuple[dict, np.ndarray, float]:
     print(f"camera motion removed: median {np.median(dev):.1f}px, 95th pct {np.quantile(dev, 0.95):.1f}px, max {dev.max():.1f}px")
     z = args.zoom if args.zoom else min(1.25, needed_zoom(C, S, d["W"], d["H"]))
     print(f"zoom {z:.3f}", flush=True)
-    return d, warps(C, S, d["W"], d["H"], z), fps
+    Ws = warps(C, S, d["W"], d["H"], z)
+    if args.level:
+        # a constant rotation of the whole shot, to level a board the phone saw at a lean
+        L = np.vstack([cv2.getRotationMatrix2D((d["W"] / 2, d["H"] / 2), args.level, 1.0), [0, 0, 1]])
+        Ws = np.array([L @ w for w in Ws])
+    return d, Ws, fps
 
 
 def cmd_analyze(args) -> None:
@@ -521,6 +526,7 @@ def main() -> None:
                        help="name:kind:x:y:w:h at half resolution in the reference frame; kind is gray, screen, red or cyan")
         s.add_argument("--ref", type=float, default=0.0, help="reference frame, seconds after --start")
         s.add_argument("--hold", type=float, default=0.0, help="hold the camera still for the first N seconds")
+        s.add_argument("--level", type=float, default=0.0, help="rotate the whole shot by this many degrees (counter-clockwise)")
         s.add_argument("--model", choices=("pivot", "translate", "similarity"), default="pivot")
         s.add_argument("--pivot", default="tft", help="anchor that gives position every frame")
         s.add_argument("--lever", default="f3", help="anchor that gives rotation and zoom, smoothed")
