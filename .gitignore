@@ -1,8 +1,10 @@
 .venv/
 __pycache__/
 *.pyc
+.pytest_cache/
 .DS_Store
 CONTEXT.md
 docs/adr/
 media/
-demos/
+demos/*
+!demos/*.gif
