@@ -40,7 +40,7 @@ verified on jass's m4 (32 gb, macos 27, python 3.14, uv):
   - with punkster81's handshake: all four handshake acks `00 01`, start `00 01`, apply `00 00`
   - no unlock again after that: start `00 00`, apply `00 01`
   byte 3 of the ack is stateful, not a success flag. do not gate on it.
-- frame cost with conservative pacing (5 ms between data packets): ~58 ms. the transfers alone are ~23 ms, so 30 fps is reachable once the sleeps go.
+- frame cost: ~7 ms per full 80-key frame with no gaps between packets (`--packet-gap 0`), measured over 5 s at a 30 fps target (24.6 fps because the loop slept a fixed 33 ms on top). raw run with no sleep at all: 992 frames in 3 s, no errors from the board. whether the firmware renders every frame at that rate is unknown and irrelevant; the player caps at 30 fps and schedules by wall clock, not by sleep.
 - **confirmed on the board.** jass filmed `stream --pattern rows` (IMG_5889): row 0 red, row 1 orange, row 2 yellow, row 3 green, row 4 blue, row 5 purple, esc and space white. every key in its expected row, including backspace, del, pgup, pgdn, end and the arrow cluster. the map in `docs/handoff/f75max-led-map.json` is confirmed. **the f75 max accepts the per-key stream from macos. the project's one unknown is closed.**
 - unlock: the confirmed run came after punkster81's handshake had been sent once earlier in the same usb session. whether the stream works on a fresh power cycle without it is untested; sending the handshake once at startup is harmless, so do that.
 - whole-board colour (`04 13`) was skipped on purpose: it ends with `04 f0`, which punkster81 documents as a flash write. the stream is ram-only and its acks prove the transport.
