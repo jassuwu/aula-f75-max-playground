@@ -47,7 +47,7 @@ class Board:
         self.dev.close()
 
     @classmethod
-    def wait(cls, timeout: float | None = None, say=print) -> "Board":
+    def wait(cls, timeout: float | None = None, say=lambda m: print(m, flush=True)) -> "Board":
         """open the board, waiting for it to appear (for example, waking from sleep)."""
         deadline = None if timeout is None else time.monotonic() + timeout
         told = False

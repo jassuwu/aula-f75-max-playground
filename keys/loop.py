@@ -42,7 +42,7 @@ RETRY = 1.0      # seconds between attempts to reopen a board that dropped out
 
 
 def run(source: Source, fps: int = FPS, board: Board | None = None, seconds: float | None = None,
-        wait: float | None = 300.0, say=print) -> None:
+        wait: float | None = 300.0, say=lambda m: print(m, flush=True)) -> None:
     board = board or Board.wait(wait, say=say)
     events: queue.Queue[tuple[Key, bool, float]] = queue.Queue()
     tap = None
