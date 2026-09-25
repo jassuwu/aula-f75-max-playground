@@ -1,8 +1,8 @@
 """a quartz event tap: every key down and key up, on a background run loop.
 
-capture=True swallows events so a game doesn't type into whatever is focused.
-that needs the host process trusted for accessibility; listen-only needs input
-monitoring. macos prompts once. nothing typed is written anywhere.
+capture=True swallows events so a game doesn't type into whatever is focused;
+capture=False passes them through. both need the host process trusted for
+accessibility. macos prompts once. nothing typed is written anywhere.
 """
 from __future__ import annotations
 
@@ -60,13 +60,13 @@ class Tap:
     def _run(self) -> None:
         mask = (Q.CGEventMaskBit(Q.kCGEventKeyDown) | Q.CGEventMaskBit(Q.kCGEventKeyUp)
                 | Q.CGEventMaskBit(Q.kCGEventFlagsChanged))
-        options = Q.kCGEventTapOptionDefault if self.capture else Q.kCGEventTapOptionListenOnly
+        # an active tap in both modes: observe passes events through, so it needs
+        # the same accessibility grant as capture and no separate input monitoring.
+        options = Q.kCGEventTapOptionDefault
         self._port = Q.CGEventTapCreate(Q.kCGSessionEventTap, Q.kCGHeadInsertEventTap, options, mask, self._callback, None)
         if self._port is None:
-            self._error = ("could not create the event tap. grant this terminal "
-                           + ("accessibility (system settings > privacy & security > accessibility)" if self.capture
-                              else "input monitoring (system settings > privacy & security > input monitoring)")
-                           + " and run again.")
+            self._error = ("could not create the event tap. grant this terminal accessibility "
+                           "(system settings > privacy & security > accessibility) and run again.")
             self._ready.set()
             return
         source = CF.CFMachPortCreateRunLoopSource(None, self._port, 0)
