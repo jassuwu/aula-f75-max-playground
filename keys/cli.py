@@ -15,6 +15,9 @@ def main(argv: list[str] | None = None) -> None:
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("snake", help="snake on the whole board. arrows steer, hold esc to quit")
     sub.add_parser("rows", help="test pattern: one colour per row")
+    pl = sub.add_parser("play", help="play a video on the keys, synced to its audio. hold esc to stop")
+    pl.add_argument("file")
+    pl.add_argument("--fit", choices=("stretch", "fill", "fit"), default="stretch")
     sub.add_parser("clock", help="set the board's clock to local time")
     args = ap.parse_args(argv)
 
@@ -31,6 +34,9 @@ def main(argv: list[str] | None = None) -> None:
         if args.cmd == "rows":
             from .sources.pattern import Rows
             run(Rows(), seconds=args.seconds)
+        elif args.cmd == "play":
+            from .sources.video import Video
+            run(Video(args.file, fit=args.fit, audio=not args.quiet), seconds=args.seconds)
         elif args.cmd == "snake":
             from .sound import Sound
             from .sources.snake import Snake
@@ -39,5 +45,5 @@ def main(argv: list[str] | None = None) -> None:
                 run(Snake(sound=sound), seconds=args.seconds)
             finally:
                 sound.close()
-    except (BoardNotFound, TapUnavailable) as e:
+    except (BoardNotFound, TapUnavailable, FileNotFoundError) as e:
         sys.exit(f"keys: {e}")
