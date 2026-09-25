@@ -20,7 +20,7 @@ import time
 from typing import Protocol
 
 from . import layout
-from .board import Board
+from .board import Board, BoardLost
 from .layout import RGB, Key
 from .tap import Tap
 
@@ -38,8 +38,12 @@ class Source(Protocol):
     def stop(self) -> None: ...
 
 
-def run(source: Source, fps: int = FPS, board: Board | None = None, seconds: float | None = None) -> None:
-    board = board or Board()
+RETRY = 1.0      # seconds between attempts to reopen a board that dropped out
+
+
+def run(source: Source, fps: int = FPS, board: Board | None = None, seconds: float | None = None,
+        wait: float | None = 300.0, say=print) -> None:
+    board = board or Board.wait(wait, say=say)
     events: queue.Queue[tuple[Key, bool, float]] = queue.Queue()
     tap = None
     if source.keys:
@@ -52,6 +56,7 @@ def run(source: Source, fps: int = FPS, board: Board | None = None, seconds: flo
     last_frame: dict[str, RGB] = {}
     t0 = time.monotonic()
     prev = t0
+    retry_at = 0.0
     n = 0
     try:
         while True:
@@ -74,11 +79,26 @@ def run(source: Source, fps: int = FPS, board: Board | None = None, seconds: flo
             prev = now
             if frame is not None:
                 last_frame = frame
-                board.write(frame)
-                last_sent = now
-            elif now - last_sent >= HOLD:
-                board.write(last_frame)
-                last_sent = now
+            if board is None and now >= retry_at:
+                try:
+                    board = Board()
+                    say("the board is back.")
+                    last_sent = 0.0
+                except Exception:
+                    retry_at = now + RETRY
+            if board is not None and (frame is not None or now - last_sent >= HOLD):
+                try:
+                    board.write(last_frame)
+                    last_sent = now
+                except BoardLost:
+                    say("the board stopped answering. it sleeps five minutes after the last key press; "
+                        "press any key on it to wake it.")
+                    try:
+                        board.close()
+                    except Exception:
+                        pass
+                    board = None
+                    retry_at = now + RETRY
             n += 1
             target = t0 + n * period
             sleep = target - time.monotonic()
@@ -92,4 +112,5 @@ def run(source: Source, fps: int = FPS, board: Board | None = None, seconds: flo
         source.stop()
         if tap is not None:
             tap.stop()
-        board.close()
+        if board is not None:
+            board.close()
