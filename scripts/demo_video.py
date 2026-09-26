@@ -310,24 +310,64 @@ def load_or_analyze(args, fps: int) -> dict:
 
 
 # ── layouts ────────────────────────────────────────────────────────────────────
-def crush(img: np.ndarray, black: int) -> np.ndarray:
-    if black <= 0:
+def crush(img: np.ndarray, black: int, gamma: float = 1.0) -> np.ndarray:
+    """values below `black` go to black, the rest is stretched and raised to `gamma`.
+    a gamma above 1 sinks the dim things (a hand lit by the keys) while the lit
+    keys stay where they are."""
+    if black <= 0 and gamma == 1.0:
         return img
-    lut = np.clip((np.arange(256) - black) * 255.0 / (255 - black), 0, 255).astype(np.uint8)
+    x = np.clip((np.arange(256) - black) / (255.0 - black), 0, 1)
+    lut = (x ** gamma * 255).astype(np.uint8)
     return cv2.LUT(img, lut)
 
 
+class Caption:
+    """one line of text, faded in and out, drawn on the composed frame."""
+
+    def __init__(self, text: str, start: float, end: float, y: int, size: int = 34,
+                 font: str = "/System/Library/Fonts/HelveticaNeue.ttc", fade: float = 0.6) -> None:
+        from PIL import Image, ImageDraw, ImageFont
+        f = ImageFont.truetype(font, size)
+        im = Image.new("L", (1920, size * 2), 0)
+        d = ImageDraw.Draw(im)
+        w = d.textlength(text, font=f)
+        d.text(((1920 - w) / 2, size // 2), text, font=f, fill=255)
+        self.mask = np.asarray(im, dtype=np.float32)[..., None] / 255.0
+        self.y, self.start, self.end, self.fade = y, start, end, fade
+        self.colour = np.array([200, 200, 200], np.float32)
+
+    def alpha(self, t: float) -> float:
+        if t < self.start or t > self.end:
+            return 0.0
+        return min(1.0, (t - self.start) / self.fade, (self.end - t) / self.fade)
+
+    def draw(self, out: np.ndarray, t: float) -> None:
+        a = self.alpha(t)
+        if a <= 0:
+            return
+        h = self.mask.shape[0]
+        region = out[self.y:self.y + h].astype(np.float32)
+        m = self.mask * a
+        out[self.y:self.y + h] = (region * (1 - m) + self.colour * m).astype(np.uint8)
+
+
 class Snake:
-    """the stabilized clip centred on a 1920x1080 black canvas."""
+    """the stabilized clip on a 1920x1080 black canvas, scaled down if it is larger."""
     size = (1920, 1080)
 
-    def __init__(self, W: int, H: int, black: int) -> None:
-        self.W, self.H, self.black = W, H, black
-        self.x, self.y = (1920 - W) // 2, (1080 - H) // 2
+    def __init__(self, W: int, H: int, black: int, gamma: float = 1.0, caption: Caption | None = None) -> None:
+        self.black, self.gamma, self.caption = black, gamma, caption
+        s = min(1.0, 1920 / W, 1080 / H)
+        self.W, self.H = round(W * s) & ~1, round(H * s) & ~1
+        self.x, self.y = (1920 - self.W) // 2, (1080 - self.H) // 2
 
     def compose(self, frame: np.ndarray, t: float) -> np.ndarray:
         out = np.zeros((1080, 1920, 3), np.uint8)
-        out[self.y:self.y + self.H, self.x:self.x + self.W] = crush(frame, self.black)
+        if frame.shape[1] != self.W:
+            frame = cv2.resize(frame, (self.W, self.H), interpolation=cv2.INTER_AREA)
+        out[self.y:self.y + self.H, self.x:self.x + self.W] = crush(frame, self.black, self.gamma)
+        if self.caption is not None:
+            self.caption.draw(out, t)
         return out
 
 
@@ -458,7 +498,11 @@ def cmd_render(args) -> None:
         crop = tuple(int(v) for v in args.crop.split(","))
         layout = BadApple(W, H, args.black, args.original, args.orig_offset, crop, args.pip_h)
     else:
-        layout = Snake(W, H, args.black)
+        cap = None
+        if args.caption:
+            a, b = (float(v) for v in args.caption_at.split(":"))
+            cap = Caption(args.caption, a, b, args.caption_y)
+        layout = Snake(W, H, args.black, args.gamma, cap)
     ow, oh = layout.size
     enc = ["ffmpeg", "-y", "-v", "error", "-stats",
            "-f", "rawvideo", "-pix_fmt", "bgr24", "-s", f"{ow}x{oh}", "-r", str(fps), "-i", "-"]
@@ -466,9 +510,13 @@ def cmd_render(args) -> None:
         ms = int(round(args.orig_offset * 1000))
         enc += ["-i", args.original, "-map", "0:v", "-map", "1:a:0",
                 "-af", f"adelay={ms}:all=1,apad,aresample=48000"]
+    elif args.audio:
+        enc += ["-i", args.audio, "-map", "0:v", "-map", "1:a:0", "-af", "aresample=48000"]
     else:
         enc += ["-ss", f"{args.start:.3f}", "-i", args.input, "-map", "0:v", "-map", f"1:{args.audio_stream}",
                 "-af", "aresample=48000"]
+    if args.fade_out > 0:
+        enc += ["-vf", f"fade=t=out:st={len(Ws) / fps - args.fade_out:.3f}:d={args.fade_out:.3f}"]
     enc += ["-shortest", "-c:v", "libx264", "-preset", "slow", "-crf", str(args.crf), "-profile:v", "high",
             "-pix_fmt", "yuv420p", "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709",
             "-color_range", "tv", "-c:a", "aac", "-b:a", "192k", "-ac", "2", "-movflags", "+faststart", args.output]
@@ -509,6 +557,12 @@ def main() -> None:
             s.add_argument("--layout", choices=("snake", "bad-apple"), default="snake")
             s.add_argument("--crf", type=int, default=17)
             s.add_argument("--audio-stream", default="a:0", help="ffmpeg stream spec for the clip's own audio")
+            s.add_argument("--audio", default=None, help="an audio file to use instead of the clip's own sound")
+            s.add_argument("--gamma", type=float, default=1.0, help="curve above the black point; >1 sinks dim things")
+            s.add_argument("--caption", default=None, help="one line of text over the picture (needs pillow)")
+            s.add_argument("--caption-at", default="1:7", help="seconds in:out for the caption")
+            s.add_argument("--caption-y", type=int, default=940)
+            s.add_argument("--fade-out", type=float, default=0.0, help="seconds of fade to black at the end")
             s.add_argument("--original", default="media/bad-apple.mp4")
             s.add_argument("--orig-offset", type=float, default=0.0, help="seconds into the output where the original starts")
             s.add_argument("--crop", default="0,0,1920,1080", help="board region x0,y0,x1,y1 in the stabilized frame")
