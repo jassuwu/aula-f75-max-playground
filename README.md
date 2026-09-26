@@ -10,6 +10,8 @@ snake. the whole board is the field, the arrows steer and are tiles too, the sco
 
 [![bad apple on the keys](demos/bad-apple.gif)](https://x.com/jassdotgg/status/2103586399014560076)
 
+![life on the keys](demos/life.gif)
+
 life. every key is a cell and its neighbours are whatever keys touch it, so the stagger and the wide keys shape the rules. the board is the editor: tap a key to toggle it. `neighbors()` in `keys/layout.py` is the whole grid.
 
 bad apple. each key shows the average of its patch of the video, using the key shapes from the vendor's own layout file, so the spacebar is one wide pixel. the audio is the clock. [full video](https://x.com/jassdotgg/status/2103586399014560076)
