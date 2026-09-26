@@ -193,3 +193,21 @@ def neighbor(key: Key, direction: str) -> Key:
         target = ROWS[(key.row + step) % len(ROWS)]
         return min(target, key=lambda k: abs(k.cx - key.cx))
     raise ValueError(direction)
+
+
+def neighbors(key: Key, reach: float = 0.5) -> list[Key]:
+    """the keys touching this one: the two either side along the row, and every
+    key in the rows above and below (wrapping) that comes within `reach` key
+    units horizontally. on a regular grid this is the usual eight. here the
+    stagger gives most keys six or seven, and the wide keys collect more:
+    space touches seventeen.
+    """
+    row = ROWS[key.row]
+    i = row.index(key)
+    out = [row[(i - 1) % len(row)], row[(i + 1) % len(row)]]
+    lo, hi = key.x - reach, key.x + key.w + reach
+    for step in (-1, 1):
+        for k in ROWS[(key.row + step) % len(ROWS)]:
+            if k.x < hi - 1e-6 and k.x + k.w > lo + 1e-6:
+                out.append(k)
+    return out
