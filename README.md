@@ -10,6 +10,8 @@ snake. the whole board is the field, the arrows steer and are tiles too, the sco
 
 [![bad apple on the keys](demos/bad-apple.gif)](https://x.com/jassdotgg/status/2103586399014560076)
 
+life. every key is a cell and its neighbours are whatever keys touch it, so the stagger and the wide keys shape the rules. the board is the editor: tap a key to toggle it. `neighbors()` in `keys/layout.py` is the whole grid.
+
 bad apple. each key shows the average of its patch of the video, using the key shapes from the vendor's own layout file, so the spacebar is one wide pixel. the audio is the clock. [full video](https://x.com/jassdotgg/status/2103586399014560076)
 
 ## run it
@@ -19,6 +21,7 @@ you need a mac, the board on a usb-c data cable, and [uv](https://docs.astral.sh
 ```sh
 uv sync
 uv run keys snake                  # arrows steer. hold esc for a second to quit
+uv run keys life                   # game of life. tap keys to draw, space pauses, enter deals, backspace clears
 uv run keys play some-video.mp4    # any video, synced to its audio
 uv run keys rows                   # one colour per row. a quick check that the board answers
 uv run keys clock                  # set the board's clock to local time
@@ -50,7 +53,7 @@ class Pulse:
         pass
 ```
 
-put it in `keys/sources/`, add a line to `keys/cli.py`, run it. `keys/layout.py` has every key's name, led index and physical rectangle, plus `neighbor()` for moving across the board the way the keys are laid out. `snake.py` and `video.py` in `keys/sources/` are the two worked examples.
+put it in `keys/sources/`, add a line to `keys/cli.py`, run it. `keys/layout.py` has every key's name, led index and physical rectangle, plus `neighbor()` for moving across the board the way the keys are laid out. `snake.py`, `life.py` and `video.py` in `keys/sources/` are the worked examples.
 
 ## what the board does
 
@@ -66,7 +69,7 @@ the protocol was pieced together from three people's work on sibling boards. non
 
 ```
 keys/           the player. board, layout, tap, loop, sound, cli
-keys/sources/   snake, video, rows
+keys/sources/   snake, life, video, rows
 scripts/        f75_probe.py (first contact), find_led.py, demo_video.py
 docs/           research note, working log, confirmed led map
 tests/          snake rules, video sampling, the loop losing the board
