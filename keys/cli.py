@@ -14,6 +14,7 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--seconds", type=float, default=None, help="stop after this long (default: run until esc is held)")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("snake", help="snake on the whole board. arrows steer, hold esc to quit")
+    sub.add_parser("life", help="conway's game of life. tap keys to draw, space pauses, enter deals, backspace clears")
     sub.add_parser("rows", help="test pattern: one colour per row")
     pl = sub.add_parser("play", help="play a video on the keys, synced to its audio. hold esc to stop")
     pl.add_argument("file")
@@ -34,6 +35,9 @@ def main(argv: list[str] | None = None) -> None:
         if args.cmd == "rows":
             from .sources.pattern import Rows
             run(Rows(), seconds=args.seconds)
+        elif args.cmd == "life":
+            from .sources.life import Life
+            run(Life(), seconds=args.seconds)
         elif args.cmd == "play":
             from .sources.video import Video
             run(Video(args.file, fit=args.fit, audio=not args.quiet), seconds=args.seconds)
