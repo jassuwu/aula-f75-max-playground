@@ -72,7 +72,7 @@ the protocol was pieced together from three people's work on sibling boards. non
 ```
 keys/           the player. board, layout, tap, loop, sound, cli
 keys/sources/   snake, life, video, rows
-scripts/        f75_probe.py (first contact), find_led.py, demo_video.py
+scripts/        f75_probe.py (first contact), find_led.py, demo_video.py, score/ (demo soundtracks from the board's own events)
 docs/           research note, working log, confirmed led map
 tests/          snake rules, video sampling, the loop losing the board
 ```
